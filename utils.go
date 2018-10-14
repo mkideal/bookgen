@@ -8,11 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/mkideal/log"
 )
 
 var (
@@ -179,10 +178,9 @@ func Chapters() []int {
 	return chapters
 }
 
-func Sections(chapter int) (sections []int, names []string) {
+func Sections(chapter int) (sections []Section) {
 	chapterDir := ChapterDir(chapter)
 	filepath.Walk(chapterDir, func(path string, info os.FileInfo, err error) error {
-		log.Debug("Sections: path=%v", path)
 		if info == nil || err != nil {
 			return filepath.SkipDir
 		}
@@ -192,13 +190,19 @@ func Sections(chapter int) (sections []int, names []string) {
 		if strings.HasPrefix(info.Name(), ".") {
 			return nil
 		}
-		section, ok := parseSectionFromFilename(info.Name())
+		id, ok := parseSectionFromFilename(info.Name())
 		if ok {
-			sections = append(sections, section)
-			names = append(names, info.Name())
+			sections = append(sections, Section{
+				Id: id,
+				File: File{
+					Filename: filepath.Join(RootDir(), info.Name()),
+				},
+			})
 		}
 		return nil
 	})
-	log.Debug("Sections: sections=%v,names=%v", sections, names)
+	sort.Slice(sections, func(i, j int) bool {
+		return sections[i].Id < sections[j].Id
+	})
 	return
 }

@@ -130,13 +130,10 @@ func Parse(chapters ...int) Book {
 			Id:   chapter,
 			File: p.parseFile(ChapterFilepath(chapter)),
 		}
-		sections, names := Sections(chapter)
-		dir := ChapterDir(chapter)
-		for i, section := range sections {
-			ch.Sections = append(ch.Sections, Section{
-				Id:   section,
-				File: p.parseFile(filepath.Join(dir, names[i])),
-			})
+		sections := Sections(chapter)
+		for i := range sections {
+			sections[i].File = p.parseFile(sections[i].File.Filename)
+			ch.Sections = append(ch.Sections, sections[i])
 		}
 		p.book.Chapters = append(p.book.Chapters, ch)
 	}
